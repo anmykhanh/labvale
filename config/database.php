@@ -21,6 +21,17 @@ class Database {
             try {
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
             } catch (PDOException $e) {
+                // If access denied with DB_USER, try alternate cPanel username (labvale496_user vs labvale496_admin)
+                if ($e->getCode() === 1045 && str_starts_with(DB_USER, 'labvale496_')) {
+                    $altUser = DB_USER === 'labvale496_admin' ? 'labvale496_user' : 'labvale496_admin';
+                    try {
+                        self::$instance = new PDO($dsn, $altUser, DB_PASS, $options);
+                        return self::$instance;
+                    } catch (PDOException $e2) {
+                        // Continue to original error handling
+                    }
+                }
+
                 // If database doesn't exist, try connecting to MySQL server to create it
                 if ($e->getCode() === 1049) {
                     $serverDsn = sprintf('mysql:host=%s;port=%s;charset=utf8mb4', DB_HOST, DB_PORT);

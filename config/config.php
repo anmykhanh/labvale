@@ -23,8 +23,8 @@ if ($isLocal) {
     if ($isCpanel) {
         define('DB_HOST', 'localhost');
         define('DB_PORT', '3306');
-        define('DB_NAME', 'labvale496_db');
-        define('DB_USER', 'labvale496_user');
+        define('DB_NAME', 'labvale496_admin');
+        define('DB_USER', 'labvale496_admin');
         define('DB_PASS', 'P@3LCkSTUh0%ksv');
     } else {
         // Standalone Linux VPS
