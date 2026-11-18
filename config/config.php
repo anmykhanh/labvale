@@ -8,12 +8,23 @@
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// Database credentials
-define('DB_HOST', '127.0.0.1');
-define('DB_PORT', '3306');
-define('DB_NAME', 'labvale_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Database credentials - auto switch between Localhost and Live Hosting
+$isLocal = in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost', '127.0.0.1']) || str_starts_with($_SERVER['HTTP_HOST'] ?? '', 'localhost:');
+
+if ($isLocal) {
+    define('DB_HOST', '127.0.0.1');
+    define('DB_PORT', '3306');
+    define('DB_NAME', 'labvale_db');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+} else {
+    // Production cPanel hosting (labvale.com)
+    define('DB_HOST', 'localhost');
+    define('DB_PORT', '3306');
+    define('DB_NAME', 'labvale496_db');
+    define('DB_USER', 'labvale496_user');
+    define('DB_PASS', 'P@3LCkSTUh0%ksv');
+}
 
 // Session security
 if (session_status() === PHP_SESSION_NONE) {
