@@ -18,12 +18,22 @@ if ($isLocal) {
     define('DB_USER', 'root');
     define('DB_PASS', '');
 } else {
-    // Production VPS (labvale.com)
-    define('DB_HOST', 'localhost');
-    define('DB_PORT', '3306');
-    define('DB_NAME', 'labvale_db');
-    define('DB_USER', 'labvale_user');
-    define('DB_PASS', 'LabVale@2026!Sec');
+    // Detect cPanel hosting environment (/home/labvale496/...)
+    $isCpanel = str_contains(__DIR__, 'labvale496');
+    if ($isCpanel) {
+        define('DB_HOST', 'localhost');
+        define('DB_PORT', '3306');
+        define('DB_NAME', 'labvale496_db');
+        define('DB_USER', 'labvale496_user');
+        define('DB_PASS', 'P@3LCkSTUh0%ksv');
+    } else {
+        // Standalone Linux VPS
+        define('DB_HOST', 'localhost');
+        define('DB_PORT', '3306');
+        define('DB_NAME', 'labvale_db');
+        define('DB_USER', 'labvale_user');
+        define('DB_PASS', 'LabVale@2026!Sec');
+    }
 }
 
 // Session security
