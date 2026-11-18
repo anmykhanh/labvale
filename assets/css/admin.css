@@ -1,0 +1,267 @@
+/**
+ * LabVale — Admin CMS Stylesheet
+ * Minimalist, refined, engineering dashboard aesthetics
+ */
+
+:root {
+    --admin-navy: #061D49;
+    --admin-blue: #0755F9;
+    --admin-sidebar-w: 260px;
+    --admin-border: #E2E8F0;
+    --admin-bg: #F8FAFC;
+    --admin-surface: #FFFFFF;
+    --admin-text: #1E293B;
+    --admin-muted: #64748B;
+}
+
+body.admin-body {
+    background-color: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    display: flex;
+}
+
+/* Admin Layout */
+.admin-sidebar {
+    width: var(--admin-sidebar-w);
+    background-color: var(--admin-navy);
+    color: #CBD5E1;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+}
+
+.admin-sidebar-header {
+    height: 70px;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-nav {
+    flex: 1;
+    padding: 1.25rem 0.75rem;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow-y: auto;
+}
+
+.admin-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    color: #94A3B8;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 150ms ease;
+}
+
+.admin-nav-link svg {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px;
+    max-width: 18px;
+    flex-shrink: 0;
+}
+
+.admin-nav-link:hover, .admin-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+}
+
+.admin-nav-link.active {
+    background-color: var(--admin-blue);
+    color: #FFFFFF;
+}
+
+.admin-badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    background-color: #EF4444;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.admin-sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-main {
+    margin-left: var(--admin-sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.admin-topbar {
+    height: 70px;
+    background-color: var(--admin-surface);
+    border-bottom: 1px solid var(--admin-border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.admin-content {
+    padding: 2rem;
+    flex: 1;
+}
+
+/* Stat Cards */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1100px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.admin-stat-card {
+    background-color: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    padding: 1.5rem;
+}
+
+.admin-stat-label {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--admin-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+}
+
+.admin-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--admin-navy);
+}
+
+/* Admin Tables */
+.admin-card {
+    background-color: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.admin-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.admin-card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--admin-navy);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.admin-table th {
+    background-color: #F8FAFC;
+    padding: 0.85rem 1.25rem;
+    font-weight: 600;
+    color: var(--admin-muted);
+    border-bottom: 1px solid var(--admin-border);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.admin-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tr:hover td {
+    background-color: #F8FAFC;
+}
+
+/* Action buttons */
+.admin-actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* TinyMCE Editor Custom Styling */
+.tox.tox-tinymce {
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 4px !important;
+}
+.tox .tox-toolbar, .tox .tox-toolbar__overflow, .tox .tox-toolbar__primary {
+    background-color: #F8FAFC !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+}
+.tox .tox-statusbar {
+    border-top: 1px solid var(--admin-border) !important;
+    background-color: #F8FAFC !important;
+}
+
+/* Login Page Layout */
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F1F5F9;
+    padding: 1.5rem;
+    width: 100%;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" width="180" height="44" fill="none">
+    <!-- Circular Badge with White Plus -->
+    <circle cx="22" cy="22" r="18" fill="#061D49"/>
+    <!-- Central Plus Symbol -->
+    <path d="M22 14v16M14 22h16" stroke="#FFFFFF" stroke-width="2.75" stroke-linecap="round"/>
+    
+    <!-- Brand Name Typography -->
+    <text x="48" y="28" font-family="'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="21" letter-spacing="-0.02em">
+        <tspan fill="#061D49">Lab</tspan><tspan fill="#0755F9">Vale</tspan>
+    </text>
+</svg>
