@@ -25,7 +25,7 @@ if ($isLocal) {
         define('DB_PORT', '3306');
         define('DB_NAME', 'labvale496_admin');
         define('DB_USER', 'labvale496_admin');
-        define('DB_PASS', 'P@3LCkSTUh0%ksv');
+        define('DB_PASS', 'labvale496_admin');
     } else {
         // Standalone Linux VPS
         define('DB_HOST', 'localhost');
