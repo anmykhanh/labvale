@@ -75,7 +75,7 @@ $adminTitle = 'Cài đặt hệ thống & SEO';
 require_once __DIR__ . '/views/header.php';
 ?>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+<div class="admin-grid-2-1">
     <!-- General & SEO Settings -->
     <div class="admin-card">
         <div class="admin-card-header">
@@ -107,7 +107,7 @@ require_once __DIR__ . '/views/header.php';
                     <input type="text" id="site_keywords" name="site_keywords" class="form-control" value="<?= e(get_setting('site_keywords')) ?>">
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="admin-grid-2">
                     <div class="form-group">
                         <label for="contact_email" class="form-label">Email liên hệ chính</label>
                         <input type="email" id="contact_email" name="contact_email" class="form-control" value="<?= e(get_setting('contact_email', 'contact@labvale.org')) ?>">

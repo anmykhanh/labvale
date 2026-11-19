@@ -7,7 +7,7 @@
 $pageTitle = e($project['title']) . ' — Dự án LabVale';
 $pageDescription = e($project['summary']);
 $currentNav = 'projects';
-$ogImage = asset_absolute('images/' . $project['image']);
+$ogImage = image_url_absolute($project['image'] ?? null, 'project-rover.jpg');
 
 $extraSchemaJson = json_encode([
     '@context' => 'https://schema.org',
@@ -60,7 +60,7 @@ require __DIR__ . '/layout/breadcrumb.php';
 
     <!-- Hero Prototype Image -->
     <div class="detail-hero-media">
-        <img src="<?= asset('images/' . $project['image']) ?>" alt="<?= e($project['title']) ?>" class="detail-hero-img" width="1000" height="500">
+        <img src="<?= e(image_url($project['image'] ?? null, 'project-rover.jpg')) ?>" alt="<?= e($project['title']) ?>" class="detail-hero-img" width="1000" height="500" onerror="this.onerror=null; this.src='<?= asset('images/project-rover.jpg') ?>';">
         <?php if (!empty($project['image_caption'])): ?>
             <div class="detail-hero-caption">
                 <?= e($project['image_caption']) ?>

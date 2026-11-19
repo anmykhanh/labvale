@@ -16,6 +16,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         exit;
     }
 
+    // 1. Process Upload File
     if (!empty($_FILES['image_file']['name'])) {
         $file = $_FILES['image_file'];
 
@@ -34,38 +35,104 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
         // Validate Extension
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'svg'];
+        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'];
         if (!in_array($ext, $allowedExts, true)) {
-            flash('error', 'Chỉ chấp nhận định dạng ảnh thật: JPG, JPEG, PNG, WEBP, SVG.');
+            flash('error', 'Chỉ chấp nhận định dạng ảnh thật: JPG, JPEG, PNG, WEBP, SVG, GIF.');
             header('Location: ' . url('/admin/media'));
             exit;
         }
 
-        // Validate MIME type
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
+        // Safe MIME type detection with fallbacks
+        $mime = '';
+        if (function_exists('finfo_open')) {
+            $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo) {
+                $mime = @finfo_file($finfo, $file['tmp_name']);
+                @finfo_close($finfo);
+            }
+        }
+        if (empty($mime) && function_exists('mime_content_type')) {
+            $mime = @mime_content_type($file['tmp_name']);
+        }
+        if (empty($mime) && function_exists('exif_imagetype')) {
+            $imgType = @exif_imagetype($file['tmp_name']);
+            $mimeMap = [
+                IMAGETYPE_JPEG => 'image/jpeg',
+                IMAGETYPE_PNG => 'image/png',
+                IMAGETYPE_WEBP => 'image/webp',
+                IMAGETYPE_GIF => 'image/gif'
+            ];
+            $mime = $mimeMap[$imgType] ?? '';
+        }
+        if (empty($mime) && ($info = @getimagesize($file['tmp_name']))) {
+            $mime = $info['mime'] ?? '';
+        }
+        if ($ext === 'svg' && (empty($mime) || in_array($mime, ['text/plain', 'text/xml', 'image/svg+xml']))) {
+            $mime = 'image/svg+xml';
+        }
 
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-        if (!in_array($mime, $allowedMimes, true)) {
-            flash('error', 'Nội dung file không đúng định dạng ảnh hợp lệ.');
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'];
+        if (!empty($mime) && !in_array($mime, $allowedMimes, true)) {
+            flash('error', 'Nội dung file không đúng định dạng ảnh hợp lệ (' . e($mime) . ').');
             header('Location: ' . url('/admin/media'));
             exit;
         }
 
         // Generate sanitized unique filename
         $baseName = slugify(pathinfo($file['name'], PATHINFO_FILENAME));
+        if (empty($baseName)) $baseName = 'image';
         $finalName = $baseName . '-' . time() . '.' . $ext;
         $destPath = $uploadDir . '/' . $finalName;
 
         if (move_uploaded_file($file['tmp_name'], $destPath)) {
-            // Record in media table
-            $stmt = $db->prepare("INSERT INTO `media` (`filename`, `original_name`, `file_path`, `file_size`, `mime_type`, `alt_text`) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$finalName, $file['name'], 'assets/images/' . $finalName, $file['size'], $mime, $baseName]);
+            try {
+                $stmt = $db->prepare("INSERT INTO `media` (`filename`, `original_name`, `file_path`, `file_size`, `mime_type`, `alt_text`) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$finalName, $file['name'], 'assets/images/' . $finalName, $file['size'], $mime ?: ('image/' . $ext), $baseName]);
+            } catch (Exception $e) {}
 
             flash('success', 'Đã tải lên ảnh thành công: ' . $finalName);
         } else {
             flash('error', 'Không thể lưu file vào thư mục assets/images.');
+        }
+
+        header('Location: ' . url('/admin/media'));
+        exit;
+    }
+
+    // 2. Process Remote Image Download (URL)
+    if (!empty($_POST['remote_image_url'])) {
+        $remoteUrl = trim($_POST['remote_image_url']);
+        if (filter_var($remoteUrl, FILTER_VALIDATE_URL)) {
+            $parsedPath = parse_url($remoteUrl, PHP_URL_PATH);
+            $ext = strtolower(pathinfo($parsedPath ?: '', PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'])) {
+                $ext = 'jpg';
+            }
+
+            $imgData = @file_get_contents($remoteUrl, false, stream_context_create([
+                'http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0 LabValeMediaBot/1.0']
+            ]));
+
+            if ($imgData && strlen($imgData) > 500) {
+                $baseName = 'remote-' . time();
+                $finalName = $baseName . '.' . $ext;
+                $destPath = $uploadDir . '/' . $finalName;
+
+                if (file_put_contents($destPath, $imgData)) {
+                    try {
+                        $stmt = $db->prepare("INSERT INTO `media` (`filename`, `original_name`, `file_path`, `file_size`, `mime_type`, `alt_text`) VALUES (?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$finalName, $remoteUrl, 'assets/images/' . $finalName, strlen($imgData), 'image/' . $ext, 'remote-image']);
+                    } catch (Exception $e) {}
+
+                    flash('success', 'Đã tải ảnh từ link ngoài về máy chủ thành công: ' . $finalName);
+                } else {
+                    flash('error', 'Không thể ghi ảnh vào thư mục máy chủ.');
+                }
+            } else {
+                flash('error', 'Không thể tải ảnh từ liên kết này (link có thể chặn bot hoặc không truy cập được).');
+            }
+        } else {
+            flash('error', 'Liên kết URL ảnh không hợp lệ.');
         }
 
         header('Location: ' . url('/admin/media'));
@@ -95,24 +162,49 @@ if (is_dir($uploadDir)) {
 usort($existingImages, fn($a, $b) => $b['mtime'] <=> $a['mtime']);
 ?>
 
-<!-- Upload Card -->
-<div class="admin-card">
-    <div class="admin-card-header">
-        <div class="admin-card-title">Tải lên hình ảnh chụp thực tế</div>
-    </div>
-    <div style="padding: 1.5rem;">
-        <form action="<?= url('/admin/media') ?>" method="POST" enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-            <?= csrf_field() ?>
-            <div style="flex: 1; min-width: 280px;">
-                <label for="image_file" class="form-label">Chọn tệp hình ảnh (Ảnh chụp thực tế, tối đa 10MB)</label>
-                <input type="file" id="image_file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg" required>
+<!-- Upload & Remote Image Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Upload Local File -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <div class="admin-card-header">
+            <div class="admin-card-title">1. Tải ảnh lên từ máy tính</div>
+        </div>
+        <div style="padding: 1.5rem;">
+            <form action="<?= url('/admin/media') ?>" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="image_file" class="form-label">Chọn tệp hình ảnh (JPG, PNG, WEBP, SVG - tối đa 10MB)</label>
+                    <input type="file" id="image_file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Tải lên máy chủ
+                </button>
+            </form>
+            <div class="form-help" style="margin-top: 0.75rem;">
+                Ảnh sẽ được lưu trực tiếp vào thư mục <code>assets/images/</code>.
             </div>
-            <button type="submit" class="btn btn-primary">
-                Tải lên thư viện
-            </button>
-        </form>
-        <div class="form-help" style="margin-top: 0.75rem;">
-            Quy định: Tuyệt đối không dùng ảnh do AI tạo ra hoặc ảnh CGI 3D. Chỉ dùng ảnh chụp robot, drone, mạch điện tử hoặc bàn thí nghiệm thực tế.
+        </div>
+    </div>
+
+    <!-- Download From Remote URL -->
+    <div class="admin-card" style="margin-bottom: 0;">
+        <div class="admin-card-header">
+            <div class="admin-card-title">2. Tải ảnh từ liên kết ngoài (URL)</div>
+        </div>
+        <div style="padding: 1.5rem;">
+            <form action="<?= url('/admin/media') ?>" method="POST">
+                <?= csrf_field() ?>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="remote_image_url" class="form-label">Dán link ảnh ngoài (https://...)</label>
+                    <input type="url" id="remote_image_url" name="remote_image_url" class="form-control" placeholder="https://example.com/photo.jpg" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Tải về thư viện máy chủ
+                </button>
+            </form>
+            <div class="form-help" style="margin-top: 0.75rem;">
+                Hệ thống sẽ tự động tải file ảnh từ liên kết về lưu trữ nội bộ tại máy chủ.
+            </div>
         </div>
     </div>
 </div>

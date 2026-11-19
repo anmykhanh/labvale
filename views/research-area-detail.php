@@ -8,7 +8,7 @@
 $pageTitle = e($area['name']) . ' — Lĩnh vực nghiên cứu — LabVale';
 $pageDescription = e($area['subtitle']) . '. ' . e($area['short_desc']);
 $currentNav = 'research-areas';
-$ogImage = asset_absolute('images/' . $area['image']);
+$ogImage = image_url_absolute($area['image'] ?? null, 'hero-lab.jpg');
 
 require_once __DIR__ . '/layout/header.php';
 $breadcrumbItems = [
@@ -28,7 +28,7 @@ require __DIR__ . '/layout/breadcrumb.php';
     </div>
 
     <div class="detail-hero-media">
-        <img src="<?= asset('images/' . $area['image']) ?>" alt="<?= e($area['name']) ?>" class="detail-hero-img" width="1000" height="500">
+        <img src="<?= e(image_url($area['image'] ?? null, 'hero-lab.jpg')) ?>" alt="<?= e($area['name']) ?>" class="detail-hero-img" width="1000" height="500" onerror="this.onerror=null; this.src='<?= asset('images/hero-lab.jpg') ?>';">
         <div class="detail-hero-caption">
             Nghiên cứu và đo kiểm thực tế trong lĩnh vực <?= e($area['name']) ?>
         </div>

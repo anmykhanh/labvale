@@ -44,6 +44,92 @@ function asset_absolute(string $path = ''): string {
 }
 
 /**
+ * Smart image URL generator
+ * Automatically handles:
+ * - External image URLs (http://, https://, //, data:image)
+ * - Local image assets inside assets/images/
+ * - Fallback placeholder when image is missing or empty
+ */
+function image_url(?string $path, string $fallback = 'hero-lab.jpg'): string {
+    $trimmed = trim($path ?? '');
+    if ($trimmed === '') {
+        return asset('images/' . ltrim($fallback, '/'));
+    }
+
+    // External URL or Data URI
+    if (preg_match('#^(https?:)?//#i', $trimmed) || str_starts_with($trimmed, 'data:image')) {
+        return $trimmed;
+    }
+
+    // Already formatted with assets/
+    if (str_starts_with($trimmed, 'assets/')) {
+        return asset(substr($trimmed, 7));
+    }
+    if (str_starts_with($trimmed, '/assets/')) {
+        return asset(substr($trimmed, 8));
+    }
+
+    // Local file inside assets/images/
+    return asset('images/' . ltrim($trimmed, '/'));
+}
+
+/**
+ * Smart absolute image URL generator for Meta Open Graph & Twitter Cards
+ */
+function image_url_absolute(?string $path, string $fallback = 'hero-lab.jpg'): string {
+    $trimmed = trim($path ?? '');
+    if ($trimmed === '') {
+        return asset_absolute('images/' . ltrim($fallback, '/'));
+    }
+
+    // External URL or Data URI
+    if (preg_match('#^(https?:)?//#i', $trimmed)) {
+        return $trimmed;
+    }
+
+    // Local file inside assets/images/
+    if (str_starts_with($trimmed, 'assets/')) {
+        return asset_absolute(substr($trimmed, 7));
+    }
+    return asset_absolute('images/' . ltrim($trimmed, '/'));
+}
+
+/**
+ * Safely handle image upload from $_FILES, returns saved filename or null
+ */
+function handle_uploaded_image(string $inputName = 'image_file'): ?string {
+    if (empty($_FILES[$inputName]['name']) || $_FILES[$inputName]['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $file = $_FILES[$inputName];
+    if ($file['size'] > 10 * 1024 * 1024) {
+        return null;
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'];
+    if (!in_array($ext, $allowedExts, true)) {
+        return null;
+    }
+
+    $uploadDir = ROOT_DIR . '/assets/images';
+    if (!is_dir($uploadDir)) {
+        @mkdir($uploadDir, 0755, true);
+    }
+
+    $baseName = slugify(pathinfo($file['name'], PATHINFO_FILENAME));
+    if (empty($baseName)) $baseName = 'upload';
+    $finalName = $baseName . '-' . time() . '.' . $ext;
+    $destPath = $uploadDir . '/' . $finalName;
+
+    if (move_uploaded_file($file['tmp_name'], $destPath)) {
+        return $finalName;
+    }
+    return null;
+}
+
+/**
  * Escape string for safe HTML output
  */
 function e(?string $str): string {

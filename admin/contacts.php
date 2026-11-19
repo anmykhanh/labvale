@@ -65,7 +65,7 @@ if ($action === 'view' && $id > 0) {
             <a href="<?= url('/admin/contacts') ?>" class="btn btn-secondary btn-sm">&larr; Quay lại hộp thư</a>
         </div>
         <div style="padding: 2rem;">
-            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--admin-border); display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="admin-grid-2" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--admin-border); gap: 1rem;">
                 <div>
                     <div style="font-size: 0.8rem; color: var(--admin-muted); text-transform: uppercase;">Người gửi:</div>
                     <div style="font-weight: 600; font-size: 1.05rem;"><?= e($contact['name']) ?></div>

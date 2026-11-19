@@ -7,7 +7,7 @@
 $pageTitle = e($item['title']) . ' — Tin tức LabVale';
 $pageDescription = e($item['summary']);
 $currentNav = 'news';
-$ogImage = asset_absolute('images/' . $item['image']);
+$ogImage = image_url_absolute($item['image'] ?? null, 'hero-lab.jpg');
 $ogType = 'article';
 
 $extraSchemaJson = json_encode([
@@ -52,7 +52,7 @@ require __DIR__ . '/layout/breadcrumb.php';
     </header>
 
     <div class="detail-hero-media">
-        <img src="<?= asset('images/' . $item['image']) ?>" alt="<?= e($item['title']) ?>" class="detail-hero-img" width="1000" height="500">
+        <img src="<?= e(image_url($item['image'] ?? null, 'hero-lab.jpg')) ?>" alt="<?= e($item['title']) ?>" class="detail-hero-img" width="1000" height="500" onerror="this.onerror=null; this.src='<?= asset('images/hero-lab.jpg') ?>';">
         <div class="detail-hero-caption">
             Ghi nhận tại phòng thực nghiệm kỹ thuật LabVale
         </div>

@@ -41,7 +41,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $summary = trim($_POST['summary'] ?? '');
         $content = trim($_POST['content'] ?? '');
         $techStack = trim($_POST['tech_stack'] ?? '');
-        $image = trim($_POST['image'] ?? 'project-rover.jpg');
+        
+        // Handle file upload or image text/URL
+        $uploaded = handle_uploaded_image('image_file');
+        if ($uploaded !== null) {
+            $image = $uploaded;
+        } else {
+            $image = trim($_POST['image'] ?? 'project-rover.jpg');
+            if (empty($image)) $image = 'project-rover.jpg';
+        }
+
         $imageCaption = trim($_POST['image_caption'] ?? '');
         $githubUrl = trim($_POST['github_url'] ?? '');
         $isFeatured = !empty($_POST['is_featured']) ? 1 : 0;
@@ -123,11 +132,11 @@ if ($action === 'create' || $action === 'edit') {
             <a href="<?= url('/admin/projects') ?>" class="btn btn-secondary btn-sm">&larr; Quay lại danh sách</a>
         </div>
         <div style="padding: 2rem;">
-            <form action="<?= url('/admin/projects' . ($id ? '?id=' . $id : '')) ?>" method="POST">
+            <form action="<?= url('/admin/projects' . ($id ? '?id=' . $id : '')) ?>" method="POST" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save">
 
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
                     <div>
                         <div class="form-group">
                             <label for="title" class="form-label">Tên dự án *</label>
@@ -179,10 +188,27 @@ if ($action === 'create' || $action === 'edit') {
                             <input type="text" id="tech_stack" name="tech_stack" class="form-control" placeholder="ROS 2, STM32, C++, OpenCV" value="<?= e($project['tech_stack']) ?>">
                         </div>
 
-                        <div class="form-group">
-                            <label for="image" class="form-label">Tên file ảnh thật (trong assets/images/)</label>
-                            <input type="text" id="image" name="image" class="form-control" value="<?= e($project['image']) ?>">
-                            <div class="form-help">Chỉ sử dụng ảnh chụp thiết bị thật đã tải lên Thư viện media.</div>
+                        <div class="form-group" style="background: #F8FAFC; border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.25rem;">
+                            <label class="form-label" style="font-weight: 600; color: var(--admin-navy);">
+                                Ảnh dự án (Dán link ảnh ngoài HOẶC tải file từ máy tính)
+                            </label>
+                            
+                            <label for="image" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-bottom: 0.35rem;">
+                                Cách 1: Dán link ảnh ngoài (https://...) hoặc tên file
+                            </label>
+                            <input type="text" id="image" name="image" class="form-control" value="<?= e($project['image']) ?>" placeholder="https://example.com/photo.jpg hoặc tên file" oninput="updateProjectImgPreview(this.value)">
+
+                            <label for="image_file" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-top: 0.75rem; margin-bottom: 0.35rem;">
+                                Cách 2: Tải file mới từ máy tính (tùy chọn)
+                            </label>
+                            <input type="file" id="image_file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="previewProjectFile(this)">
+
+                            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-size: 0.85rem; color: var(--admin-muted);">Xem trước:</span>
+                                <div style="width: 130px; height: 85px; border-radius: 6px; overflow: hidden; border: 1px solid var(--admin-border); background: #FFFFFF;">
+                                    <img id="project_preview" src="<?= image_url($project['image'], 'project-rover.jpg') ?>" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='<?= asset('images/hero-lab.jpg') ?>';">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -241,6 +267,34 @@ if ($action === 'create' || $action === 'edit') {
                 }
             }
         });
+
+        function updateProjectImgPreview(val) {
+            const preview = document.getElementById('project_preview');
+            if (!preview) return;
+            val = (val || '').trim();
+            if (!val) {
+                preview.src = '<?= asset('images/project-rover.jpg') ?>';
+                return;
+            }
+            if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//') || val.startsWith('data:image')) {
+                preview.src = val;
+            } else if (val.startsWith('assets/')) {
+                preview.src = '<?= url('') ?>/' + val;
+            } else {
+                preview.src = '<?= asset('images/') ?>' + val.replace(/^\/+/, '');
+            }
+        }
+
+        function previewProjectFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('project_preview');
+                    if (preview) preview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
     <?php
     require_once __DIR__ . '/views/footer.php';

@@ -1360,3 +1360,68 @@ textarea.form-control {
     max-width: 460px;
     margin: 0 auto;
 }
+
+/* ==========================================================================
+   News Card Components & Responsive Layout
+   ========================================================================== */
+
+.news-card-horizontal {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.news-card-horizontal:hover {
+    border-color: var(--color-tech-blue);
+    box-shadow: 0 4px 16px rgba(6, 29, 73, 0.06);
+}
+
+.news-card-media {
+    background-color: #F1F5F9;
+    position: relative;
+    overflow: hidden;
+    min-height: 180px;
+}
+
+.news-card-media a {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.news-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+}
+
+.news-card-horizontal:hover .news-card-media img {
+    transform: scale(1.02);
+}
+
+.news-card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+    .news-card-horizontal {
+        grid-template-columns: 1fr;
+    }
+    
+    .news-card-media {
+        aspect-ratio: 16 / 9;
+        min-height: auto;
+    }
+    
+    .news-card-content {
+        padding: 1.25rem 1rem;
+    }
+}

@@ -35,7 +35,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $slug = trim($_POST['slug'] ?? '');
         $summary = trim($_POST['summary'] ?? '');
         $content = trim($_POST['content'] ?? '');
-        $image = trim($_POST['image'] ?? 'hero-lab.jpg');
+        
+        // Handle file upload or image text/URL
+        $uploaded = handle_uploaded_image('image_file');
+        if ($uploaded !== null) {
+            $image = $uploaded;
+        } else {
+            $image = trim($_POST['image'] ?? 'hero-lab.jpg');
+            if (empty($image)) $image = 'hero-lab.jpg';
+        }
+
         $isPublished = !empty($_POST['is_published']) ? 1 : 0;
 
         if (empty($slug)) {
@@ -105,7 +114,7 @@ if ($action === 'create' || $action === 'edit') {
             <a href="<?= url('/admin/news') ?>" class="btn btn-secondary btn-sm">&larr; Quay lại danh sách</a>
         </div>
         <div style="padding: 2rem;">
-            <form action="<?= url('/admin/news' . ($id ? '?id=' . $id : '')) ?>" method="POST">
+            <form action="<?= url('/admin/news' . ($id ? '?id=' . $id : '')) ?>" method="POST" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save">
 
@@ -129,9 +138,41 @@ if ($action === 'create' || $action === 'edit') {
                     <textarea id="content" name="content" class="form-control" rows="10"><?= htmlspecialchars($item['content'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="image" class="form-label">Tên file ảnh (assets/images/)</label>
-                    <input type="text" id="image" name="image" class="form-control" value="<?= e($item['image']) ?>">
+                <!-- Image Settings with Remote URL & Direct Upload -->
+                <div class="form-group" style="background: #F8FAFC; border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.25rem;">
+                    <label class="form-label" style="font-weight: 600; color: var(--admin-navy);">
+                        Hình ảnh bản tin (Dán link ảnh ngoài HOẶC tải file từ máy tính)
+                    </label>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start; margin-top: 0.5rem;">
+                        <div>
+                            <label for="image" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-bottom: 0.35rem;">
+                                Cách 1: Dán link ảnh ngoài (https://...) hoặc tên file nội bộ
+                            </label>
+                            <input type="text" id="image" name="image" class="form-control" value="<?= e($item['image']) ?>" placeholder="https://example.com/photo.jpg hoặc tên file" oninput="updateImagePreview(this.value)">
+                            <div class="form-help" style="margin-top: 0.35rem;">
+                                Có thể dán trực tiếp link ảnh từ bất kỳ trang nào (Unsplash, Google, Wikimedia, v.v.).
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="image_file" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-bottom: 0.35rem;">
+                                Cách 2: Tải file mới từ máy tính (tùy chọn)
+                            </label>
+                            <input type="file" id="image_file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="previewSelectedFile(this)">
+                            <div class="form-help" style="margin-top: 0.35rem;">
+                                Nếu chọn file, hệ thống sẽ ưu tiên tải file này lên máy chủ.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Image Preview Box -->
+                    <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 0.85rem; color: var(--admin-muted);">Xem trước ảnh:</span>
+                        <div style="width: 140px; height: 90px; border-radius: 6px; overflow: hidden; border: 1px solid var(--admin-border); background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+                            <img id="img_preview" src="<?= image_url($item['image'], 'hero-lab.jpg') ?>" alt="Xem trước" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='<?= asset('images/hero-lab.jpg') ?>';">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 1.5rem;">
@@ -178,6 +219,34 @@ if ($action === 'create' || $action === 'edit') {
                 }
             }
         });
+
+        function updateImagePreview(val) {
+            const preview = document.getElementById('img_preview');
+            if (!preview) return;
+            val = (val || '').trim();
+            if (!val) {
+                preview.src = '<?= asset('images/hero-lab.jpg') ?>';
+                return;
+            }
+            if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//') || val.startsWith('data:image')) {
+                preview.src = val;
+            } else if (val.startsWith('assets/')) {
+                preview.src = '<?= url('') ?>/' + val;
+            } else {
+                preview.src = '<?= asset('images/') ?>' + val.replace(/^\/+/, '');
+            }
+        }
+
+        function previewSelectedFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('img_preview');
+                    if (preview) preview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
     <?php
     require_once __DIR__ . '/views/footer.php';

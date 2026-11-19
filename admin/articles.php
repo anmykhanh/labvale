@@ -38,7 +38,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $areaId = !empty($_POST['area_id']) ? (int)$_POST['area_id'] : null;
         $summary = trim($_POST['summary'] ?? '');
         $content = trim($_POST['content'] ?? '');
-        $image = trim($_POST['image'] ?? 'article-drone-principles.jpg');
+        
+        // Handle file upload or image text/URL
+        $uploaded = handle_uploaded_image('image_file');
+        if ($uploaded !== null) {
+            $image = $uploaded;
+        } else {
+            $image = trim($_POST['image'] ?? 'article-drone-principles.jpg');
+            if (empty($image)) $image = 'article-drone-principles.jpg';
+        }
+
         $readingTime = trim($_POST['reading_time'] ?? '6 phút');
         $author = trim($_POST['author'] ?? 'Nhóm Nghiên Cứu LabVale');
         $tags = trim($_POST['tags'] ?? '');
@@ -116,11 +125,11 @@ if ($action === 'create' || $action === 'edit') {
             <a href="<?= url('/admin/articles') ?>" class="btn btn-secondary btn-sm">&larr; Quay lại danh sách</a>
         </div>
         <div style="padding: 2rem;">
-            <form action="<?= url('/admin/articles' . ($id ? '?id=' . $id : '')) ?>" method="POST">
+            <form action="<?= url('/admin/articles' . ($id ? '?id=' . $id : '')) ?>" method="POST" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="save">
 
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
                     <div>
                         <div class="form-group">
                             <label for="title" class="form-label">Tiêu đề bài viết *</label>
@@ -156,9 +165,27 @@ if ($action === 'create' || $action === 'edit') {
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="image" class="form-label">Ảnh bìa (assets/images/)</label>
-                            <input type="text" id="image" name="image" class="form-control" value="<?= e($article['image']) ?>">
+                        <div class="form-group" style="background: #F8FAFC; border: 1px solid var(--admin-border); border-radius: 8px; padding: 1.25rem;">
+                            <label class="form-label" style="font-weight: 600; color: var(--admin-navy);">
+                                Ảnh bài viết (Dán link ảnh ngoài HOẶC tải file từ máy tính)
+                            </label>
+                            
+                            <label for="image" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-bottom: 0.35rem;">
+                                Cách 1: Dán link ảnh ngoài (https://...) hoặc tên file
+                            </label>
+                            <input type="text" id="image" name="image" class="form-control" value="<?= e($article['image']) ?>" placeholder="https://example.com/photo.jpg hoặc tên file" oninput="updateArticleImgPreview(this.value)">
+
+                            <label for="image_file" style="font-size: 0.85rem; color: var(--admin-muted); display: block; margin-top: 0.75rem; margin-bottom: 0.35rem;">
+                                Cách 2: Tải file mới từ máy tính (tùy chọn)
+                            </label>
+                            <input type="file" id="image_file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="previewArticleFile(this)">
+
+                            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-size: 0.85rem; color: var(--admin-muted);">Xem trước:</span>
+                                <div style="width: 130px; height: 85px; border-radius: 6px; overflow: hidden; border: 1px solid var(--admin-border); background: #FFFFFF;">
+                                    <img id="article_preview" src="<?= image_url($article['image'], 'article-drone-principles.jpg') ?>" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='<?= asset('images/hero-lab.jpg') ?>';">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -222,6 +249,34 @@ if ($action === 'create' || $action === 'edit') {
                 }
             }
         });
+
+        function updateArticleImgPreview(val) {
+            const preview = document.getElementById('article_preview');
+            if (!preview) return;
+            val = (val || '').trim();
+            if (!val) {
+                preview.src = '<?= asset('images/article-drone-principles.jpg') ?>';
+                return;
+            }
+            if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('//') || val.startsWith('data:image')) {
+                preview.src = val;
+            } else if (val.startsWith('assets/')) {
+                preview.src = '<?= url('') ?>/' + val;
+            } else {
+                preview.src = '<?= asset('images/') ?>' + val.replace(/^\/+/, '');
+            }
+        }
+
+        function previewArticleFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('article_preview');
+                    if (preview) preview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
     <?php
     require_once __DIR__ . '/views/footer.php';

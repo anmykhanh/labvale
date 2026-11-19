@@ -7,7 +7,7 @@
 $pageTitle = e($article['title']) . ' — Góc nghiên cứu LabVale';
 $pageDescription = e($article['summary']);
 $currentNav = 'research';
-$ogImage = asset_absolute('images/' . $article['image']);
+$ogImage = image_url_absolute($article['image'] ?? null, 'article-drone-principles.jpg');
 $ogType = 'article';
 
 $extraSchemaJson = json_encode([
@@ -58,7 +58,7 @@ require __DIR__ . '/layout/breadcrumb.php';
     </header>
 
     <div class="detail-hero-media">
-        <img src="<?= asset('images/' . $article['image']) ?>" alt="<?= e($article['title']) ?>" class="detail-hero-img" width="1000" height="500">
+        <img src="<?= e(image_url($article['image'] ?? null, 'article-drone-principles.jpg')) ?>" alt="<?= e($article['title']) ?>" class="detail-hero-img" width="1000" height="500" onerror="this.onerror=null; this.src='<?= asset('images/article-drone-principles.jpg') ?>';">
         <div class="detail-hero-caption">
             Tài liệu nghiên cứu kỹ thuật — Bản quyền nội dung thuộc LabVale
         </div>

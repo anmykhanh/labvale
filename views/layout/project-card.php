@@ -11,12 +11,13 @@ $statusClassMap = [
 ];
 $statusClass = $statusClassMap[$project['status']] ?? 'status-dang-nghien-cuu';
 $projectUrl = url('projects/' . $project['slug']);
-$imgUrl = !empty($project['image']) ? asset('images/' . $project['image']) : asset('images/project-rover.jpg');
+$imgUrl = image_url($project['image'] ?? null, 'project-rover.jpg');
+$fallbackUrl = asset('images/project-rover.jpg');
 ?>
 <article class="project-card">
     <div class="project-thumbnail-wrapper">
         <a href="<?= $projectUrl ?>" tabindex="-1" aria-hidden="true">
-            <img src="<?= e($imgUrl) ?>" alt="<?= e($project['title']) ?>" class="project-thumbnail" loading="lazy" width="600" height="340">
+            <img src="<?= e($imgUrl) ?>" alt="<?= e($project['title']) ?>" class="project-thumbnail" loading="lazy" width="600" height="340" onerror="this.onerror=null; this.src='<?= $fallbackUrl ?>';">
         </a>
         <span class="project-status-tag <?= $statusClass ?>"><?= e($project['status']) ?></span>
     </div>

@@ -4,12 +4,13 @@
  * @var array $article
  */
 $articleUrl = url('research/' . $article['slug']);
-$imgUrl = !empty($article['image']) ? asset('images/' . $article['image']) : asset('images/article-drone-principles.jpg');
+$imgUrl = image_url($article['image'] ?? null, 'article-drone-principles.jpg');
+$fallbackUrl = asset('images/article-drone-principles.jpg');
 ?>
 <article class="article-card">
     <div class="article-thumbnail-wrapper">
         <a href="<?= $articleUrl ?>" tabindex="-1" aria-hidden="true">
-            <img src="<?= e($imgUrl) ?>" alt="<?= e($article['title']) ?>" class="article-thumbnail" loading="lazy" width="600" height="340">
+            <img src="<?= e($imgUrl) ?>" alt="<?= e($article['title']) ?>" class="article-thumbnail" loading="lazy" width="600" height="340" onerror="this.onerror=null; this.src='<?= $fallbackUrl ?>';">
         </a>
     </div>
     <div class="article-body">

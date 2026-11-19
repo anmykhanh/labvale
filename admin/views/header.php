@@ -87,12 +87,20 @@ $unreadContacts = (int)$db->query("SELECT COUNT(*) FROM `contacts` WHERE `is_rea
         </div>
     </aside>
 
+    <!-- Backdrop for mobile drawer -->
+    <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
     <!-- Admin Main -->
     <div class="admin-main">
         <!-- Topbar -->
         <header class="admin-topbar">
-            <div style="font-weight: 600; font-size: 1.15rem; color: var(--admin-navy);">
-                <?= e($adminTitle) ?>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="admin-mobile-toggle" id="adminSidebarToggle" aria-label="Mở bảng điều khiển">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div style="font-weight: 600; font-size: 1.15rem; color: var(--admin-navy);">
+                    <?= e($adminTitle) ?>
+                </div>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="<?= url('/') ?>" target="_blank" class="btn btn-secondary btn-sm">

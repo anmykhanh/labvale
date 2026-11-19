@@ -24,18 +24,19 @@ require __DIR__ . '/layout/breadcrumb.php';
     </div>
 
     <?php if (!empty($newsList)): ?>
-        <div style="display: flex; flex-direction: column; gap: 2rem; max-width: 860px; margin: 0 auto;">
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 860px; margin: 0 auto;">
             <?php foreach ($newsList as $item): 
                 $newsUrl = url('news/' . $item['slug']);
-                $imgUrl = !empty($item['image']) ? asset('images/' . $item['image']) : asset('images/hero-lab.jpg');
+                $imgUrl = image_url($item['image'] ?? null, 'hero-lab.jpg');
+                $fallbackUrl = asset('images/hero-lab.jpg');
             ?>
-                <article style="background-color: var(--color-white); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; display: grid; grid-template-columns: 260px 1fr; transition: border-color var(--transition-fast);">
-                    <div style="background-color: #F1F5F9; height: 100%; min-height: 180px;">
+                <article class="news-card-horizontal">
+                    <div class="news-card-media">
                         <a href="<?= $newsUrl ?>" tabindex="-1" aria-hidden="true">
-                            <img src="<?= e($imgUrl) ?>" alt="<?= e($item['title']) ?>" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                            <img src="<?= e($imgUrl) ?>" alt="<?= e($item['title']) ?>" loading="lazy" onerror="this.onerror=null; this.src='<?= $fallbackUrl ?>';">
                         </a>
                     </div>
-                    <div style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div class="news-card-content">
                         <div>
                             <div style="font-size: 0.8rem; color: var(--color-secondary-text); margin-bottom: 0.5rem;">
                                 <time datetime="<?= e($item['published_at']) ?>"><?= format_date($item['published_at']) ?></time>
